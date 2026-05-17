@@ -1,0 +1,25 @@
+{
+  "name": "backend-nodejs",
+  "version": "0.1.0",
+  "description": "BorrowEase backend (Express + MySQL)",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "seed:reset": "node scripts/reset-and-seed.js",
+    "check:encoding": "powershell -NoProfile -ExecutionPolicy Bypass -File ..\\scripts\\check-mojibake.ps1"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.9.7",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.13"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
