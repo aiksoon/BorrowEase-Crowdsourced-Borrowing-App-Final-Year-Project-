@@ -38,19 +38,60 @@ router.get('/', async (req, res) => {
     }
 
     const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+    const safeLimit = Math.min(Math.max(toInt(limit, 50), 1), 100);
+    const safeOffset = Math.max(toInt(offset, 0), 0);
     const sql = `SELECT items.*, users.name AS owner_name, users.avatar_url AS owner_avatar_url,
                    (SELECT COALESCE(ROUND(AVG(rating), 1), 5.0) FROM reviews WHERE reviewee_id = items.owner_id) AS rating
                  FROM items JOIN users ON items.owner_id = users.id
                  ${where}
                  ORDER BY items.created_at DESC
-                 LIMIT ? OFFSET ?`;
-    const safeLimit = Math.min(Math.max(toInt(limit, 50), 1), 100);
-    const safeOffset = Math.max(toInt(offset, 0), 0);
-    params.push(safeLimit, safeOffset);
-    const [rows] = await pool.execute(sql, params);
+                 LIMIT ${safeLimit} OFFSET ${safeOffset}`;
+    const [rows] = await pool.query(sql, params);
     return res.json(rows);
   } catch (err) {
     return res.status(500).json({ message: 'Failed to list items', error: err.message });
+  }
+});
+
+router.get('/debug', (req, res) => {
+  try {
+    const { q, category, owner_id, available_only, limit = 50, offset = 0 } = req.query;
+    const clauses = [];
+    const params = [];
+
+    if (q) {
+      clauses.push('(items.title LIKE ? OR items.description LIKE ? OR items.location_text LIKE ?)');
+      const like = `%${q}%`;
+      params.push(like, like, like);
+    }
+    if (category) {
+      clauses.push('items.category = ?');
+      params.push(category);
+    }
+    const ownerId = toInt(owner_id, null);
+    if (ownerId !== null) {
+      clauses.push('items.owner_id = ?');
+      params.push(ownerId);
+    }
+    if (available_only === 'true') {
+      clauses.push("items.availability = 'available'");
+    } else if (available_only !== 'false') {
+      clauses.push("items.availability = 'available'");
+    }
+
+    const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+    const safeLimit = Math.min(Math.max(toInt(limit, 50), 1), 100);
+    const safeOffset = Math.max(toInt(offset, 0), 0);
+    const sql = `SELECT items.*, users.name AS owner_name, users.avatar_url AS owner_avatar_url,
+                   (SELECT COALESCE(ROUND(AVG(rating), 1), 5.0) FROM reviews WHERE reviewee_id = items.owner_id) AS rating
+                 FROM items JOIN users ON items.owner_id = users.id
+                 ${where}
+                 ORDER BY items.created_at DESC
+                 LIMIT ${safeLimit} OFFSET ${safeOffset}`;
+
+    return res.json({ sql, params, safeLimit, safeOffset });
+  } catch (err) {
+    return res.status(500).json({ message: 'Failed to build debug query', error: err.message });
   }
 });
 
