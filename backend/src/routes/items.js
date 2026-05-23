@@ -4,6 +4,12 @@ const auth = require('../middleware/auth');
 
 const router = express.Router();
 
+const toInt = (value, fallback) => {
+  if (value === undefined || value === null || value === '') return fallback;
+  const parsed = Number.parseInt(String(value), 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
 router.get('/', async (req, res) => {
   try {
     const { q, category, owner_id, available_only, limit = 50, offset = 0 } = req.query;
@@ -18,9 +24,10 @@ router.get('/', async (req, res) => {
       clauses.push('items.category = ?');
       params.push(category);
     }
-    if (owner_id) {
+    const ownerId = toInt(owner_id, null);
+    if (ownerId !== null) {
       clauses.push('items.owner_id = ?');
-      params.push(owner_id);
+      params.push(ownerId);
     }
     if (available_only === 'true') {
       clauses.push("items.availability = 'available'");
@@ -37,7 +44,9 @@ router.get('/', async (req, res) => {
                  ${where}
                  ORDER BY items.created_at DESC
                  LIMIT ? OFFSET ?`;
-    params.push(Number(limit), Number(offset));
+    const safeLimit = Math.min(Math.max(toInt(limit, 50), 1), 100);
+    const safeOffset = Math.max(toInt(offset, 0), 0);
+    params.push(safeLimit, safeOffset);
     const [rows] = await pool.execute(sql, params);
     return res.json(rows);
   } catch (err) {

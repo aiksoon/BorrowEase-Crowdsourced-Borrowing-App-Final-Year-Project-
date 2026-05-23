@@ -1,0 +1,18 @@
+import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
+
+class ParseConfig {
+  // ⚠️ 把下面的值替换成你从 Back4app 复制的真实值
+  static const String appId = 'ifweYO9Oh9ivtUeB6rF9AkHPlnqZN6PjszVXZ31l';
+  static const String clientKey = 'nrATynZsqlJ8FGZoDRUuhGtl3ilQczclL6GaiElP';
+  static const String serverUrl = 'https://parseapi.back4app.com';
+  
+  static Future<void> initialize() async {
+    await Parse().initialize(
+      appId,
+      serverUrl,
+      clientKey: clientKey,
+      autoSendSessionId: true,
+      debug: true,  // 开发调试用，打包 release 时可以改为 false
+    );
+  }
+}
