@@ -16,6 +16,7 @@ class _CommunityPageState extends State<CommunityPage> {
   bool _loading = true;
   bool _refreshing = false;
   int? _currentUserId;
+  String? _currentUserAvatarUrl;
   List<Map<String, dynamic>> _allPosts = [];
   List<Map<String, dynamic>> _nearbyPosts = [];
 
@@ -38,13 +39,29 @@ class _CommunityPageState extends State<CommunityPage> {
 
     try {
       final user = await api.getStoredUser();
+      int? userId = _toInt(user?['id']);
+      String? avatarUrl = user?['avatar_url']?.toString();
+      try {
+        final me = await api.getMe();
+        final meUser = me['user'];
+        if (meUser is Map<String, dynamic>) {
+          userId = _toInt(meUser['id']);
+          final latestAvatar = meUser['avatar_url']?.toString().trim();
+          if (latestAvatar != null && latestAvatar.isNotEmpty) {
+            avatarUrl = latestAvatar;
+          }
+        }
+      } catch (_) {
+        // Keep stored user fallback when /auth/me is unavailable.
+      }
       final allFuture = api.getCommunityPosts();
       final nearbyFuture = api.getCommunityPosts(nearby: true);
       final results = await Future.wait([allFuture, nearbyFuture]);
 
       if (!mounted) return;
       setState(() {
-        _currentUserId = _toInt(user?['id']);
+        _currentUserId = userId;
+        _currentUserAvatarUrl = avatarUrl;
         _allPosts = _toMapList(results[0]);
         _nearbyPosts = _toMapList(results[1]);
         _loading = false;
@@ -127,8 +144,11 @@ class _CommunityPageState extends State<CommunityPage> {
     if (value.startsWith('http://') || value.startsWith('https://')) {
       return value;
     }
-    if (value.startsWith('/')) return '$defaultBaseUrl$value';
-    return '$defaultBaseUrl/$value';
+    final cleanValue = value.startsWith('/') ? value.substring(1) : value;
+    final baseUrl = defaultBaseUrl.endsWith('/')
+        ? defaultBaseUrl.substring(0, defaultBaseUrl.length - 1)
+        : defaultBaseUrl;
+    return '$baseUrl/$cleanValue';
   }
 
   String _avatarInitial(String name) {
@@ -396,7 +416,11 @@ class _CommunityPageState extends State<CommunityPage> {
     final ownerId = _toInt(item['user_id']);
     final isMine = ownerId != null && ownerId == _currentUserId;
     final ownerName = (item['owner_name'] ?? 'Owner').toString();
-    final ownerAvatarUrl = _resolveMediaUrl(item['owner_avatar_url']?.toString());
+    final rawOwnerAvatar =
+      (isMine && (_currentUserAvatarUrl ?? '').trim().isNotEmpty)
+        ? _currentUserAvatarUrl
+        : item['owner_avatar_url']?.toString();
+    final ownerAvatarUrl = _resolveMediaUrl(rawOwnerAvatar);
     final content = (item['content'] ?? '').toString().trim();
     final imageUrl = _resolveMediaUrl(item['image_url']?.toString());
     final location = (item['owner_location'] ?? 'Location not provided')

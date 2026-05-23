@@ -42,8 +42,11 @@ class _HandoverPageState extends State<HandoverPage> {
     if (value.startsWith('http://') || value.startsWith('https://')) {
       return value;
     }
-    if (value.startsWith('/')) return '$defaultBaseUrl$value';
-    return '$defaultBaseUrl/$value';
+    final cleanValue = value.startsWith('/') ? value.substring(1) : value;
+    final baseUrl = defaultBaseUrl.endsWith('/') 
+        ? defaultBaseUrl.substring(0, defaultBaseUrl.length - 1)
+        : defaultBaseUrl;
+    return '$baseUrl/$cleanValue';
   }
 
   String get _nextStatus {

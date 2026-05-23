@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/api.dart';
+import '../services/api_client.dart' show defaultBaseUrl;
 
 class AdminTotalUsersPage extends StatefulWidget {
   const AdminTotalUsersPage({super.key});
@@ -137,11 +138,24 @@ class _AdminTotalUsersPageState extends State<AdminTotalUsersPage> {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
 
+  String? _resolveMediaUrl(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    final value = raw.trim();
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+      return value;
+    }
+    final cleanValue = value.startsWith('/') ? value.substring(1) : value;
+    final baseUrl = defaultBaseUrl.endsWith('/')
+        ? defaultBaseUrl.substring(0, defaultBaseUrl.length - 1)
+        : defaultBaseUrl;
+    return '$baseUrl/$cleanValue';
+  }
+
   Widget _buildAvatar(Map<String, dynamic> user) {
-    final avatarUrl = (user['avatar_url'] ?? '').toString().trim();
+    final avatarUrl = _resolveMediaUrl(user['avatar_url']?.toString());
     final name = (user['name'] ?? 'User').toString();
 
-    if (avatarUrl.isNotEmpty) {
+    if (avatarUrl != null) {
       return CircleAvatar(
         radius: 22,
         backgroundColor: _ecoTeal.withValues(alpha: 0.15),

@@ -361,30 +361,29 @@ class _AlertsPageState extends State<AlertsPage> {
           .trim();
       final kycUserId = userId ?? 0;
       if (kycStatus == 'rejected') {
+        final kycTimestamp = await _getKycReminderTimestamp(userId, 'rejected');
         entries.add({
           'id': 'kyc-rejected-$kycUserId',
           'type': 'Reminders',
           'title': 'KYC needs attention',
           'message': 'Your KYC was rejected. Update and submit again.',
-          'timestamp': DateTime.now().toIso8601String(),
+          'timestamp': kycTimestamp,
           'icon': Icons.verified_user_outlined,
           'iconBg': const Color(0xFFE3F2FD),
           'action': 'kyc',
         });
       } else if (kycStatus == 'unverified' || kycStatus.isEmpty) {
-        final shouldShow = await _consumeKycReminderOnce(userId);
-        if (shouldShow) {
-          entries.add({
-            'id': 'kyc-complete-once-$kycUserId',
-            'type': 'Reminders',
-            'title': 'Complete KYC',
-            'message': 'Verify identity to unlock full platform trust.',
-            'timestamp': DateTime.now().toIso8601String(),
-            'icon': Icons.verified_user_outlined,
-            'iconBg': const Color(0xFFE3F2FD),
-            'action': 'kyc',
-          });
-        }
+        final kycTimestamp = await _getKycReminderTimestamp(userId, 'unverified');
+        entries.add({
+          'id': 'kyc-complete-$kycUserId',
+          'type': 'Reminders',
+          'title': 'Complete KYC',
+          'message': 'Verify identity to unlock full platform trust.',
+          'timestamp': kycTimestamp,
+          'icon': Icons.verified_user_outlined,
+          'iconBg': const Color(0xFFE3F2FD),
+          'action': 'kyc',
+        });
       }
 
       entries.sort((a, b) {
@@ -432,8 +431,8 @@ class _AlertsPageState extends State<AlertsPage> {
   String _clearedAtStorageKey(int? userId) =>
       'alerts.cleared_at.user.${userId ?? 0}';
 
-  String _kycReminderShownKey(int? userId) =>
-      'alerts.kyc.reminder.v2.shown.user.${userId ?? 0}';
+    String _kycReminderTimestampKey(int? userId, String status) =>
+      'alerts.kyc.reminder.ts.${status}.user.${userId ?? 0}';
 
   Future<void> _ensureDismissedLoaded(int? userId) async {
     if (_dismissedLoaded && _dismissedUserId == userId) return;
@@ -496,14 +495,15 @@ class _AlertsPageState extends State<AlertsPage> {
     }
   }
 
-  Future<bool> _consumeKycReminderOnce(int? userId) async {
-    if (userId == null) return false;
+  Future<String> _getKycReminderTimestamp(int? userId, String status) async {
+    if (userId == null) return DateTime.now().toIso8601String();
     final prefs = await SharedPreferences.getInstance();
-    final key = _kycReminderShownKey(userId);
-    final shown = prefs.getBool(key) ?? false;
-    if (shown) return false;
-    await prefs.setBool(key, true);
-    return true;
+    final key = _kycReminderTimestampKey(userId, status);
+    final existing = prefs.getString(key);
+    if (existing != null && existing.isNotEmpty) return existing;
+    final now = DateTime.now().toIso8601String();
+    await prefs.setString(key, now);
+    return now;
   }
 
   bool _isClearedByTimestamp(String? rawTimestamp) {

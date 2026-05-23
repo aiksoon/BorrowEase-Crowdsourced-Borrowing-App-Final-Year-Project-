@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/api.dart';
-import '../services/api_client.dart';
+import '../services/api_client.dart' show defaultBaseUrl;
 import '../services/favorites_events.dart';
 import 'screens.dart';
 
@@ -291,10 +291,11 @@ class _MyFavouritesPageState extends State<MyFavouritesPage> {
     if (value.startsWith('http://') || value.startsWith('https://')) {
       return value;
     }
-    if (value.startsWith('/')) {
-      return '$defaultBaseUrl$value';
-    }
-    return '$defaultBaseUrl/$value';
+    final cleanValue = value.startsWith('/') ? value.substring(1) : value;
+    final baseUrl = defaultBaseUrl.endsWith('/') 
+        ? defaultBaseUrl.substring(0, defaultBaseUrl.length - 1)
+        : defaultBaseUrl;
+    return '$baseUrl/$cleanValue';
   }
 
   double _toDouble(dynamic value, {double fallback = 0}) {

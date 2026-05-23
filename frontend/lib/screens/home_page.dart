@@ -1,7 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import '../services/api.dart';
-import '../services/api_client.dart';
+import '../services/api_client.dart' show defaultBaseUrl;
 import 'screens.dart';
 
 const Color _ecoTeal = Color(0xFF0D9488);
@@ -132,8 +133,13 @@ class _HomePageState extends State<HomePage> {
       });
     } catch (e) {
       if (!mounted) return;
+      String errorMsg = e.toString();
+      if (e is DioException) {
+        errorMsg = 'HTTP ${e.response?.statusCode ?? "Error"}: ${e.message}\n${e.response?.data}';
+      }
+      print('[HomePageError] $errorMsg'); // Debug log
       setState(() {
-        _error = e.toString();
+        _error = errorMsg;
       });
     } finally {
       if (mounted) {
@@ -171,10 +177,12 @@ class _HomePageState extends State<HomePage> {
     if (value.startsWith('http://') || value.startsWith('https://')) {
       return value;
     }
-    if (value.startsWith('/')) {
-      return '$defaultBaseUrl$value';
-    }
-    return '$defaultBaseUrl/$value';
+    // Remove leading slash to avoid double slashes
+    final cleanValue = value.startsWith('/') ? value.substring(1) : value;
+    final baseUrl = defaultBaseUrl.endsWith('/') 
+        ? defaultBaseUrl.substring(0, defaultBaseUrl.length - 1)
+        : defaultBaseUrl;
+    return '$baseUrl/$cleanValue';
   }
 
   @override

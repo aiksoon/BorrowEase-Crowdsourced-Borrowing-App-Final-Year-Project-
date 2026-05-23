@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const String defaultBaseUrl = 'http://localhost:4000';
+const String defaultBaseUrl = 'https://borrowease-crowdsourced-borrowing-app.onrender.com';
 const String _tokenKey = 'auth_token';
 const String _userKey = 'auth_user';
 
