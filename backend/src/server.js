@@ -21,6 +21,8 @@ const adminRoutes = require('./routes/admin');
 const app = express();
 app.use(cors());
 app.use(express.json());
+// Serve uploads from both repo root and backend folder to cover legacy paths.
+app.use('/uploads', express.static(path.join(__dirname, '..', '..', 'uploads')));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
