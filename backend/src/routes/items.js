@@ -49,7 +49,15 @@ router.get('/', async (req, res) => {
     const [rows] = await pool.query(sql, params);
     return res.json(rows);
   } catch (err) {
-    return res.status(500).json({ message: 'Failed to list items', error: err.message });
+    console.error('[items:list] failed', err);
+    return res.status(500).json({
+      message: 'Failed to list items',
+      error: err.message,
+      code: err.code,
+      errno: err.errno,
+      sqlMessage: err.sqlMessage,
+      sqlState: err.sqlState,
+    });
   }
 });
 
