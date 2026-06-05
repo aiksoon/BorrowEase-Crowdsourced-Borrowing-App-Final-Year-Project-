@@ -1,79 +1,52 @@
-BorrowEase / Crowdsourced Borrowing App
+# 🔄 BorrowEase — Crowdsourced P2P Borrowing App
 
-Project Overview
-- BorrowEase is a peer-to-peer item borrowing and short-term rental mobile application with an admin backend. It supports listing items, search and favourites, borrow requests, payment/deposit handling, handover evidence, in-app chat, reviews, reporting, KYC verification, and admin moderation.
+[![Flutter](https://img.shields.io/badge/Frontend-Flutter%20%7C%20Dart-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Node.js](https://img.shields.io/badge/Backend-Node.js%20%7C%20Express-339933?logo=node.js&logoColor=white)](https://nodejs.org)
+[![MySQL](https://img.shields.io/badge/Database-MySQL-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com)
+[![License](https://img.shields.io/badge/Academic%20Project-FYP-orange)](#)
 
-Tech Stack
-- Frontend: Flutter (Dart)
-- Backend: Node.js + Express
-- Database: MySQL
-- Auth & Security: JWT (jsonwebtoken), bcryptjs
-- File uploads: Multer
-- Frontend HTTP client: Dio
-- Email: Nodemailer
+> **BorrowEase** is a peer-to-peer (P2P) item borrowing and short-term rental mobile application designed to encourage sharing and reduce over-buying in local communities. The platform connects lenders holding idle items with borrowers who need temporary access, managed seamlessly via an intelligent workflow and an admin moderation backend.
 
-Key Features (Summary)
-- User registration, login, password reset via OTP email
-- JWT-based authentication with protected routes; frontend persists tokens in SharedPreferences
-- Create, edit and remove item listings with image/video uploads, categories and location data
-- Full borrow request lifecycle: pending → accepted/rejected → handover → in_use → return_pending → completed
-- Transactions and deposit tracking, delayed settlement policy, handover/return codes and photo evidence
-- In-app chat, ratings & reviews, favourites, and reporting system
-- KYC submission and admin approval, admin dashboards and moderation tools
-- Community posts with nearby filtering
+---
 
-Project Structure (brief)
-- backend/: Express API implementation; server entry point is backend/src/server.js
-- frontend/: Flutter mobile app; entry point is frontend/lib/main.dart
-- schema.sql: MySQL schema and migration scripts
+## 🚀 Key Features
 
-Quick Start (short guide)
-1) Prepare MySQL and run `schema.sql` to create the database schema.
-2) Backend
-   - cd into `backend/`, copy `.env.example` to `.env` and fill in DB credentials, `JWT_SECRET`, and email settings.
-   - Install dependencies:
+### 📱 Mobile Frontend (Borrowers & Lenders)
+* **Secure Authentication:** JWT-based login/register with secure client-side storage (`SharedPreferences`) and OTP-based password reset via email.
+* **Smart Marketplace:** Create, edit, and remove item listings with media uploads (images/videos), category tagging, and location-based filtering.
+* **Full Rental Lifecycle:** End-to-end transaction flow tracking:
+  $$\text{Pending} \rightarrow \text{Accepted} \rightarrow \text{Handover} \rightarrow \text{In Use} \rightarrow \text{Return Pending} \rightarrow \text{Completed}$$
+* **Trust & Security:** Identity verification via **KYC submission**, digital escrow deposit tracking with delayed settlement policies, and mandatory handover/return photo evidence.
+* **Social & Discovery:** Real-time in-app chat, user ratings & reviews, item favoriting, and location-aware community posts.
 
-```bash
-cd backend
-npm install
-```
+### 💻 Web Admin Backend
+* **User & Content Moderation:** Review and approve/reject pending KYC submissions.
+* **Platform Oversight:** Monitor transactions, manage system reports, and moderate marketplace listings.
 
-   - Start the API server:
+---
 
-```bash
-npm run dev
-# or
-npm start
-```
+## 🛠️ Tech Stack
 
-   - Seed/reset sample data (optional):
+| Layer | Technology | Key Libraries / Usage |
+| :--- | :--- | :--- |
+| **Frontend** | Flutter (Dart) | `Dio` (HTTP client), `SharedPreferences` (Token persistence) |
+| **Backend** | Node.js (Express) | `Multer` (File uploads), `Nodemailer` (OTP emails) |
+| **Database** | MySQL | `schema.sql` (Relational schema & indices) |
+| **Security** | JWT & Bcrypt | `jsonwebtoken` (Protected routes), `bcryptjs` (Password hashing) |
 
-```bash
-npm run seed:reset
-```
+---
 
-3) Frontend
-   - cd into `frontend/` and ensure the Flutter SDK is installed.
-   - Run the app:
+## 📁 Project Structure
 
-```bash
-cd frontend
-flutter run
-```
-
-Important Environment Variables (examples)
-- `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`
-- `JWT_SECRET`
-- `ADMIN_EMAILS`, `DEFAULT_ADMIN_EMAIL`, `DEFAULT_ADMIN_USERNAME`
-- Email provider settings (used for OTP email sending)
-
-Implementation Notes
-- The backend issues JWTs in `backend/src/routes/auth.js` via `jwt.sign()` and validates them in `backend/src/middleware/auth.js` using `jwt.verify()`.
-- The frontend API client (`frontend/lib/services/api_client.dart`) persists the token in SharedPreferences and attaches it as `Authorization: Bearer <token>` on outgoing requests.
-- Password reset uses an email OTP flow (not JWT). Tokens issued at registration/login expire after 7 days by default.
-
-Next Suggestions (optional)
-- Add screenshots or a demo video under the root `pictures/` folder and link them in this README.
-- Include example API requests and a short FAQ section.
-
-See the backend and frontend entry points for details: [backend/src/server.js](backend/src/server.js#L1) and [frontend/lib/main.dart](frontend/lib/main.dart#L1).
+```text
+BorrowEase/
+├── backend/               # Node.js + Express API Implementation
+│   └── src/
+│       ├── middleware/    # Auth & validation guards (e.g., auth.js)
+│       ├── routes/        # API Endpoints (auth, items, chats, etc.)
+│       └── server.js      # Backend entry point
+├── frontend/              # Flutter Mobile Application
+│   └── lib/
+│       ├── services/      # api_client.dart (Attached Bearer Tokens)
+│       └── main.dart      # Flutter entry point
+└── schema.sql             # Database schema & initial migration scripts
