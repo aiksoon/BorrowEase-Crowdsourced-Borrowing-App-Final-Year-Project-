@@ -112,6 +112,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
             eventAt: eventPaidAt,
             rentalAmount: rentalAmount > 0 ? rentalAmount : null,
             depositAmount: depositAmount > 0 ? depositAmount : null,
+            depositForfeited: depositConfiscated,
           ),
         );
       }

@@ -344,7 +344,7 @@ class _AdminTotalUsersPageState extends State<AdminTotalUsersPage> {
                               alignment: Alignment.centerRight,
                               child: Switch(
                                 value: !isBanned,
-                                activeColor: _ecoTeal,
+                                activeThumbColor: _ecoTeal,
                                 onChanged: isUpdating
                                     ? null
                                     : (value) => _toggleBan(user, value),

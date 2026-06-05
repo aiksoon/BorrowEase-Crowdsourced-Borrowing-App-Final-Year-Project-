@@ -544,7 +544,9 @@ class ApiClient {
       options: Options(contentType: 'multipart/form-data'),
     );
     final urls = response.data?['urls'] as List<dynamic>?;
-    return urls?.map((e) => e.toString()).toList() ?? <String>[];
+    final list = urls?.map((e) => e.toString()).toList() ?? <String>[];
+    print('Upload URLs: $list');
+    return list;
   }
 
   Future<Map<String, dynamic>> attachEvidence({

@@ -358,7 +358,7 @@ class _SubmitReportPageState extends State<SubmitReportPage> {
                           ),
                           const SizedBox(height: 10),
                           DropdownButtonFormField<int>(
-                            value: _selectedRequestId,
+                            initialValue: _selectedRequestId,
                             isExpanded: true,
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
@@ -412,7 +412,7 @@ class _SubmitReportPageState extends State<SubmitReportPage> {
                           ),
                           const SizedBox(height: 10),
                           DropdownButtonFormField<String>(
-                            value: _selectedReason,
+                            initialValue: _selectedReason,
                             isExpanded: true,
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
@@ -447,8 +447,9 @@ class _SubmitReportPageState extends State<SubmitReportPage> {
                             ),
                             validator: (value) {
                               final text = (value ?? '').trim();
-                              if (text.isEmpty)
+                              if (text.isEmpty) {
                                 return 'Please enter a description';
+                              }
                               if (text.length < 10) {
                                 return 'Description should be at least 10 characters';
                               }

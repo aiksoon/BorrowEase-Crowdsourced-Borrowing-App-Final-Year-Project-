@@ -98,15 +98,37 @@ class _AdminListingsPageState extends State<AdminListingsPage> {
   }
 
   int _gridColumns(double width) {
-    if (width >= 1200) return 4;
-    if (width >= 900) return 3;
-    return 2;
+    if (width >= 1200) return 3;
+    if (width >= 900) return 2;
+    return 1;
   }
 
-  double _cardAspectRatio(double width) {
-    if (width >= 1200) return 0.9;
-    if (width >= 900) return 0.82;
-    return 0.76;
+  double _cardHeight(double width) {
+    if (width >= 1200) return 132;
+    if (width >= 900) return 126;
+    return 120;
+  }
+
+  String _normalizeLabel(dynamic raw) {
+    return (raw ?? '').toString().replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
+
+  String _formatUpdatedDate(dynamic raw) {
+    final value = (raw ?? '').toString().trim();
+    if (value.isEmpty) return '';
+    final parsed = DateTime.tryParse(value);
+    if (parsed == null) return value;
+    final year = parsed.year.toString().padLeft(4, '0');
+    final month = parsed.month.toString().padLeft(2, '0');
+    final day = parsed.day.toString().padLeft(2, '0');
+    return '$year-$month-$day';
+  }
+
+  String _availabilityLabel(String raw) {
+    final value = raw.trim().toLowerCase();
+    if (value.isEmpty) return '';
+    if (value.length == 1) return value.toUpperCase();
+    return '${value[0].toUpperCase()}${value.substring(1)}';
   }
 
   void _toggleSelection(int id, bool selected) {
@@ -210,16 +232,29 @@ class _AdminListingsPageState extends State<AdminListingsPage> {
   Widget _buildItemCard(Map<String, dynamic> item) {
     final id = _itemId(item);
     final selected = _selectedIds.contains(id);
-    final title = (item['title'] ?? 'Untitled').toString();
+    final rawTitle = _normalizeLabel(item['title']);
+    final title = rawTitle.isEmpty ? 'Untitled' : rawTitle;
     final imageUrl = _resolveMediaUrl(item['image_url']);
+    final ownerName = _normalizeLabel(item['owner_name']);
+    final availability = _availabilityLabel((item['availability'] ?? '').toString());
+    final updatedLabel = _formatUpdatedDate(item['updated_at']);
+    final metaParts = <String>[];
+    if (ownerName.isNotEmpty) {
+      metaParts.add('Owner: $ownerName');
+    }
+    if (updatedLabel.isNotEmpty) {
+      metaParts.add('Updated: $updatedLabel');
+    }
+    final metaText = metaParts.join(' | ');
+    final isAvailable = availability.toLowerCase() == 'available';
 
     return GestureDetector(
       onTap: () => _toggleSelection(id, !selected),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          color: selected ? const Color(0xFFF0FBFA) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: selected ? _ecoTeal : Colors.grey.withValues(alpha: 0.2),
             width: selected ? 2 : 1,
@@ -227,84 +262,113 @@ class _AdminListingsPageState extends State<AdminListingsPage> {
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Stack(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Positioned.fill(
-                child: imageUrl == null
-                    ? Container(
-                        color: Colors.grey[200],
-                        child: const Icon(
-                          Icons.image_not_supported_outlined,
-                          size: 42,
-                          color: Colors.grey,
-                        ),
-                      )
-                    : Image.network(
-                        imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) {
-                          return Container(
-                            color: Colors.grey[200],
-                            child: const Icon(
-                              Icons.broken_image_outlined,
-                              size: 42,
-                              color: Colors.grey,
-                            ),
-                          );
-                        },
-                      ),
-              ),
-              Positioned(
-                top: 8,
-                right: 8,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.95),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 6,
-                      ),
-                    ],
-                  ),
-                  child: Checkbox(
-                    value: selected,
-                    activeColor: _ecoTeal,
-                    onChanged: (checked) =>
-                        _toggleSelection(id, checked ?? false),
-                  ),
+                  width: 84,
+                  height: 84,
+                  color: Colors.grey[200],
+                  child: imageUrl == null
+                      ? const Icon(
+                          Icons.image_not_supported_outlined,
+                          size: 36,
+                          color: Colors.grey,
+                        )
+                      : Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) {
+                            return const Icon(
+                              Icons.broken_image_outlined,
+                              size: 36,
+                              color: Colors.grey,
+                            );
+                          },
+                        ),
                 ),
               ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                  color: Colors.black.withValues(alpha: 0.62),
-                  child: Text(
-                    title,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      height: 1.2,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[900],
+                              height: 1.3,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 26,
+                          height: 26,
+                          child: Checkbox(
+                            value: selected,
+                            activeColor: _ecoTeal,
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
+                            onChanged: (checked) =>
+                                _toggleSelection(id, checked ?? false),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                    if (metaText.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        metaText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                    if (availability.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isAvailable
+                              ? const Color(0xFFE6F6F4)
+                              : Colors.grey[200],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          availability,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isAvailable ? _ecoTeal : Colors.grey[700],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],
@@ -316,10 +380,6 @@ class _AdminListingsPageState extends State<AdminListingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final crossAxisCount = _gridColumns(width);
-    final childAspectRatio = _cardAspectRatio(width);
-
     return Scaffold(
       backgroundColor: const Color(0xFFF4FBFA),
       appBar: AppBar(
@@ -387,22 +447,31 @@ class _AdminListingsPageState extends State<AdminListingsPage> {
               );
             }
 
-            return GridView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.fromLTRB(
-                12,
-                12,
-                12,
-                _selectedIds.isEmpty ? 16 : 100,
-              ),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: childAspectRatio,
-              ),
-              itemCount: _listings.length,
-              itemBuilder: (context, index) => _buildItemCard(_listings[index]),
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                final crossAxisCount = _gridColumns(width);
+                final cardHeight = _cardHeight(width);
+
+                return GridView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    16,
+                    16,
+                    _selectedIds.isEmpty ? 20 : 100,
+                  ),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    mainAxisExtent: cardHeight,
+                  ),
+                  itemCount: _listings.length,
+                  itemBuilder: (context, index) =>
+                      _buildItemCard(_listings[index]),
+                );
+              },
             );
           },
         ),

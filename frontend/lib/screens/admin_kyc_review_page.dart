@@ -57,8 +57,9 @@ class _AdminKYCReviewPageState extends State<AdminKYCReviewPage> {
   String? _resolveMediaUrl(dynamic raw) {
     final value = (raw ?? '').toString().trim();
     if (value.isEmpty) return null;
-    if (value.startsWith('http://') || value.startsWith('https://'))
+    if (value.startsWith('http://') || value.startsWith('https://')) {
       return value;
+    }
     if (value.startsWith('/')) return '$defaultBaseUrl$value';
     return '$defaultBaseUrl/$value';
   }

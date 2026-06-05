@@ -260,7 +260,7 @@ class _PayoutSettingsPageState extends State<PayoutSettingsPage> {
                             ),
                             const SizedBox(height: 12),
                             DropdownButtonFormField<String>(
-                              value: _selectedBank,
+                              initialValue: _selectedBank,
                               decoration: const InputDecoration(
                                 labelText: 'Bank Name',
                                 border: OutlineInputBorder(),

@@ -24,6 +24,7 @@ SELECT id INTO @aik_id FROM users WHERE LOWER(name) = 'aiksoon99' ORDER BY id LI
 SELECT id INTO @soon_id FROM users WHERE LOWER(name) = 'soon99' ORDER BY id LIMIT 1;
 
 -- Remove dependent data first.
+DELETE FROM system_notifications;
 DELETE FROM chat_messages;
 DELETE FROM chats;
 DELETE FROM request_evidence;

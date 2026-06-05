@@ -432,7 +432,7 @@ class _AlertsPageState extends State<AlertsPage> {
       'alerts.cleared_at.user.${userId ?? 0}';
 
     String _kycReminderTimestampKey(int? userId, String status) =>
-      'alerts.kyc.reminder.ts.${status}.user.${userId ?? 0}';
+      'alerts.kyc.reminder.ts.$status.user.${userId ?? 0}';
 
   Future<void> _ensureDismissedLoaded(int? userId) async {
     if (_dismissedLoaded && _dismissedUserId == userId) return;
